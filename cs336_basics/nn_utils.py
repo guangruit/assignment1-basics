@@ -79,3 +79,20 @@ class SwiGLU(nn.Module):
         output = self.w2(gated)
 
         return output
+
+
+def make_swiglu_d_ff(d_model):
+    target_d_ff = int(8*d_model/3)
+    d_ff = ((target_d_ff+31)//64)*64
+    return d_ff
+
+
+class PositionwiseFeedForward(nn.Module):
+    def __init__(self, d_model, device, dtype):
+        super().__init__()
+        self.d_model = d_model
+        self.d_ff = make_swiglu_d_ff(d_model)
+        self.swiglu = SwiGLU(d_model, self.d_ff, device, dtype)
+    
+    def forward(self, x):
+        return self.swiglu(x)
